@@ -1,0 +1,50 @@
+0, 50, CPU usage
+50, 0, SYSCALL 7 initiated
+50, 1, switch to kernel mode
+51, 3, context saved
+54, 1, find vector 7 in memory
+55, 1, obtain ISR address
+56, 36, save information to PCB
+92, 21, call the scheduler
+113, 57, execute the scheduler
+170, 28, update interrupt controller status
+198, 1, IRET
+199, 1, context restored
+200, 1, switch to user mode
+201, 170, END_IO 20
+371, 1, switch to kernel mode
+372, 2, context saved
+374, 1, find vector 20 in memory
+375, 1, obtain ISR address
+376, 98, save information to PCB
+474, 59, call the scheduler
+533, 157, execute the scheduler
+690, 78, update interrupt controller status
+768, 1, IRET
+769, 1, context restored
+770, 1, switch to user mode
+771, 100, CPU usage
+871, 0, SYSCALL 12 initiated
+871, 1, switch to kernel mode
+872, 1, context saved
+873, 1, find vector 12 in memory
+874, 1, obtain ISR address
+875, 92, save information to PCB
+967, 55, call the scheduler
+1022, 148, execute the scheduler
+1170, 74, update interrupt controller status
+1244, 1, IRET
+1245, 3, context restored
+1248, 1, switch to user mode
+1249, 328, END_IO 22
+1577, 1, switch to kernel mode
+1578, 1, context saved
+1579, 1, find vector 22 in memory
+1580, 1, obtain ISR address
+1581, 63, save information to PCB
+1644, 38, call the scheduler
+1682, 101, execute the scheduler
+1783, 50, update interrupt controller status
+1833, 1, IRET
+1834, 3, context restored
+1837, 1, switch to user mode
