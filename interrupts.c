@@ -21,7 +21,7 @@ int loadTrace(const char* filename, TraceEntry** traceEntries){
         return -1;
     }
 
-    char line[50];
+    char line[50]; // Buffer
     int count = 0;
 
     // Count the number of entries in the file
