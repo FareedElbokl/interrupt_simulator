@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Navigate to the parent directory where interrupts.c is located and compile it
-cd ..
 gcc -o interrupts interrupts.c
 
 # Run the interrupts executable with test2/trace2.txt as input

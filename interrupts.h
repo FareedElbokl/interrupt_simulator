@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define VECTOR_TABLE_SIZE 4
+#define VECTOR_TABLE_SIZE 25  // Size of the vector table based on the provided ISR addresses
 
 // Structure to hold activity data from trace.txt
 typedef struct {
@@ -14,16 +14,14 @@ typedef struct {
 
 // Structure to represent an entry in the vector table
 typedef struct {
-    int interruptNumber;   // Interrupt number
-    int memoryAddress;     // Memory address where the ISR is located
-    int isrAddress;        // ISR start address (is the memory address in our case for simplicity)
+    int interruptNumber;   // Interrupt number (SYSCALL or END_IO)
+    int memoryAddress;     // ISR memory address in hex
 } VectorEntry;
 
 // Function declarations
 int loadTrace(const char* filename, TraceEntry** traceEntries); // Loads trace input data
 void useCPU(int duration, FILE* logFile, int* currentTime); // Simulates CPU work
-void handleSysCall(int position, int duration, FILE* logFile, int* currentTime); // Simulates the handling of a system call
-void simulateInterrupt(int interruptNumber, int isrDuration, FILE* logFile, int* currentTime); // Simulates an interrupt
-void handleEndIO(int position, int duration, FILE* logFile, int* currentTime); // Simulates the handling of and input/output process
+void handleSysCall(int position, int duration, FILE* logFile, int* currentTime); // Simulates a system call
+void handleEndIO(int position, int duration, FILE* logFile, int* currentTime); // Simulates handling of an I/O interrupt
 
 #endif // INTERRUPTS_H

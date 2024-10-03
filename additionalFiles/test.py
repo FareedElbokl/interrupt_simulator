@@ -1,6 +1,6 @@
 """
 Python script used to automate the calculating of cpu usage, io usage, and overhead ratios based on
-the output trace files from running the simulator.
+the output trace files from running the simulator. Prints results to terminal.
 """
 
 def parse_log_file(filename):
@@ -21,7 +21,6 @@ def parse_log_file(filename):
         duration = int(parts[1])   # The duration of the event
         event_type = parts[2]      # The event description
 
-        # Categorize events
         if "CPU usage" in event_type:
             cpu_usage += duration
         elif "END_IO" in event_type:
@@ -60,10 +59,30 @@ def printResults(results):
 
 if __name__ == "__main__":
 
-    for i in range(20):
-        filename = f"execution{i}.txt"
-        result = parse_log_file(filename)
-        printResults(result)
+    # Go through the execution output files in the test1 and test2 directories
+    for i in range(1,3):
+        filename = f"./test{i}/execution{i}.txt"
+        try:
+            result = parse_log_file(filename)
+            print(f"Results for test{i}:")
+            printResults(result)
+            print("\n")
+        except FileNotFoundError:
+            print(f"File not found: {filename}")
+            print("\n")
+
+
+    # Go through the execution output files in the otherTests directory
+    for i in range(3, 21):
+        filename = f"./otherTests/test{i}/execution{i}.txt"
+        try:
+            result = parse_log_file(filename)
+            print(f"Results for test{i}:")
+            printResults(result)
+            print("\n")
+        except FileNotFoundError:
+            print(f"File not found: {filename}")
+            print("\n")
 
 
 

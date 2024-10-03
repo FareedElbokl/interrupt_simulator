@@ -4,13 +4,13 @@
 #include <unistd.h>  // For usleep()
 #include <time.h>    // For random numbers
 
-
 // The vector table will be hardcoded as an array of structs
 VectorEntry vectorTable[VECTOR_TABLE_SIZE] = {
-    {7,  0x0E, 0x0E},   // SYSCALL 7
-    {12, 0x18, 0x18},   // SYSCALL 12
-    {20, 0x28, 0x28},   // END_IO 20
-    {22, 0x16, 0x16}    // END_IO 22
+    {1, 0x01A3}, {2, 0x024D}, {3, 0x03F6}, {4, 0x05A9}, {5, 0x0467},
+    {6, 0x022B}, {7, 0x03D1}, {8, 0x0659}, {9, 0x027A}, {10, 0x04F2},
+    {11, 0x01EC}, {12, 0x0398}, {13, 0x05B4}, {14, 0x06AD}, {15, 0x02C9},
+    {16, 0x04C1}, {17, 0x071D}, {18, 0x0603}, {19, 0x0387}, {20, 0x06C4},
+    {21, 0x073E}, {22, 0x02B2}, {23, 0x03FD}, {24, 0x0568}, {25, 0x019F}
 };
 
 // Function to load the input trace data
@@ -30,7 +30,7 @@ int loadTrace(const char* filename, TraceEntry** traceEntries){
     }
 
     // Allocate memory for the trace entries
-    *traceEntries = malloc(count * sizeof(TraceEntry)); // Derefrencing here means we are accessing a pointer to the first TraceEntry struct in an array of them
+    *traceEntries = malloc(count * sizeof(TraceEntry));
     if (!*traceEntries) {
         printf("Error: Memory allocation failed\n");
         fclose(file);
@@ -41,9 +41,9 @@ int loadTrace(const char* filename, TraceEntry** traceEntries){
 
     // Load the trace entries into memory
     int index = 0;
-    while (fgets(line, sizeof(line), file)) { // The fgets fn here reads one line from the "file" and stores it in the line buffer. (If fgets does not successfully read a line (returns null) that ends the while loop)
-        TraceEntry entry; // Temporary struct created to store the line entry from the trace input
-        sscanf(line, "%[^,], %d", entry.activity, &entry.duration); // sscanf parses the formatted data of a string (line). It reads a string until it encounters a comma, then reads an integer.
+    while (fgets(line, sizeof(line), file)) {
+        TraceEntry entry;
+        sscanf(line, "%[^,], %d", entry.activity, &entry.duration);
 
         // If SYSCALL or END_IO, extract the position
         if (strncmp(entry.activity, "SYSCALL", 7) == 0 || strncmp(entry.activity, "END_IO", 6) == 0) {
@@ -52,7 +52,7 @@ int loadTrace(const char* filename, TraceEntry** traceEntries){
             entry.position = -1;  // No position for CPU activities
         }
 
-        (*traceEntries)[index++] = entry; // Store the trace entry in the traceEntries array
+        (*traceEntries)[index++] = entry;
     }
 
     fclose(file);
@@ -61,88 +61,87 @@ int loadTrace(const char* filename, TraceEntry** traceEntries){
 
 // Function to simulate CPU usage
 void useCPU(int duration, FILE* logFile, int* currentTime) {
-    fprintf(logFile, "%d, %d, CPU usage\n", *currentTime, duration);
+    fprintf(logFile, "%d, %d, CPU execution\n", *currentTime, duration);
     *currentTime += duration;
 }
 
 // Function to simulate a system call (SYSCALL)
 void handleSysCall(int position, int duration, FILE* logFile, int* currentTime) {
-    fprintf(logFile, "%d, %d, SYSCALL %d initiated\n", *currentTime, 0, position);
-    simulateInterrupt(position, duration, logFile, currentTime);
-}
-
-// Function to simulate interrupt handling
-void simulateInterrupt(int interruptNumber, int isrDuration, FILE* logFile, int* currentTime) {
     fprintf(logFile, "%d, 1, switch to kernel mode\n", *currentTime);
     *currentTime += 1;
 
     // Save context (random between 1-3 ms)
-    int contextSaveDuration = rand() % 3 + 1; // rand() generates random int, %3 ensures between 0 and 2, + 1 ensures between 1-3
+    int contextSaveDuration = rand() % 3 + 1;
     fprintf(logFile, "%d, %d, context saved\n", *currentTime, contextSaveDuration);
     *currentTime += contextSaveDuration;
 
-    // Find vector in memory
-    fprintf(logFile, "%d, 1, find vector %d in memory\n", *currentTime, interruptNumber);
+    // Find vector in memory and get ISR address
+    int vectorIndex = position - 1;
+    int isrAddress = vectorTable[vectorIndex].memoryAddress;
+
+    fprintf(logFile, "%d, 1, find vector %d in memory position 0x%04X\n", *currentTime, position, vectorIndex * 2);
+    *currentTime += 1;
+    fprintf(logFile, "%d, 1, load address 0x%04X into the PC\n", *currentTime, isrAddress);
     *currentTime += 1;
 
-    // Get ISR address from vector table
-    fprintf(logFile, "%d, 1, obtain ISR address\n", *currentTime);
-    *currentTime += 1;
+    // Simulate ISR execution
+    int isrDuration = rand() % 301 + 100; // Random ISR duration between 100 and 400 ms
+    fprintf(logFile, "%d, %d, SYSCALL: run the ISR\n", *currentTime, isrDuration);
+    *currentTime += isrDuration;
 
-    // Execute ISR (first determine total random duration of ISR between 100-400 ms)
-    int isrActivityDuration = rand() % 301 + 100;
+    // Simulate data transfer and error checking
+    int dataTransferDuration = rand() % 100 + 50; // Random data transfer time
+    fprintf(logFile, "%d, %d, transfer data\n", *currentTime, dataTransferDuration);
+    *currentTime += dataTransferDuration;
 
-    // Now break down ISR execution into detailed steps
-    // 1. Save information to the Process Control Block (PCB)
-    int saveToPCBDuration = isrActivityDuration * 0.25; // 25% of the total ISR time
-    fprintf(logFile, "%d, %d, save information to PCB\n", *currentTime, saveToPCBDuration);
-    *currentTime += saveToPCBDuration;
+    int errorCheckDuration = rand() % 100 + 50; // Random error check time
+    fprintf(logFile, "%d, %d, check for errors\n", *currentTime, errorCheckDuration);
+    *currentTime += errorCheckDuration;
 
-    // 2. Call the scheduler
-    int schedulerCallDuration = isrActivityDuration * 0.15; // 15% of the total ISR time
-    fprintf(logFile, "%d, %d, call the scheduler\n", *currentTime, schedulerCallDuration);
-    *currentTime += schedulerCallDuration;
-
-    // 3. Execute the scheduler (decide which process to run next)
-    int schedulerExecutionDuration = isrActivityDuration * 0.4; // 40% of the total ISR time
-    fprintf(logFile, "%d, %d, execute the scheduler\n", *currentTime, schedulerExecutionDuration);
-    *currentTime += schedulerExecutionDuration;
-
-    // 4. Update the interrupt controller status
-    int interruptControllerUpdateDuration = isrActivityDuration * 0.2; // 20% of the total ISR time
-    fprintf(logFile, "%d, %d, update interrupt controller status\n", *currentTime, interruptControllerUpdateDuration);
-    *currentTime += interruptControllerUpdateDuration;
-
-    // Execute IRET (interrupt return)
+    // IRET (interrupt return)
     fprintf(logFile, "%d, 1, IRET\n", *currentTime);
-    *currentTime += 1;
-
-    // Restore context (random between 1-3 ms)
-    int contextRestoreDuration = rand() % 3 + 1;
-    fprintf(logFile, "%d, %d, context restored\n", *currentTime, contextRestoreDuration);
-    *currentTime += contextRestoreDuration;
-
-    // Switch back to user mode
-    fprintf(logFile, "%d, 1, switch to user mode\n", *currentTime);
     *currentTime += 1;
 }
 
-
 // Function to handle END_IO interrupts
 void handleEndIO(int position, int duration, FILE* logFile, int* currentTime) {
-    fprintf(logFile, "%d, %d, END_IO %d\n", *currentTime, duration, position);
+    fprintf(logFile, "%d, 1, check priority of interrupt\n", *currentTime);
+    *currentTime += 1;
+    fprintf(logFile, "%d, 1, check if masked\n", *currentTime);
+    *currentTime += 1;
+
+    fprintf(logFile, "%d, 1, switch to kernel mode\n", *currentTime);
+    *currentTime += 1;
+
+    // Save context (random between 1-3 ms)
+    int contextSaveDuration = rand() % 3 + 1;
+    fprintf(logFile, "%d, %d, context saved\n", *currentTime, contextSaveDuration);
+    *currentTime += contextSaveDuration;
+
+    // Find vector in memory and get ISR address
+    int vectorIndex = position - 1;
+    int isrAddress = vectorTable[vectorIndex].memoryAddress;
+
+    fprintf(logFile, "%d, 1, find vector %d in memory position 0x%04X\n", *currentTime, position, vectorIndex * 2);
+    *currentTime += 1;
+    fprintf(logFile, "%d, 1, load address 0x%04X into the PC\n", *currentTime, isrAddress);
+    *currentTime += 1;
+
+    // Simulate END_IO interrupt
+    fprintf(logFile, "%d, %d, END_IO\n", *currentTime, duration);
     *currentTime += duration;
 
-    // Simulate interrupt for END_IO
-    simulateInterrupt(position, duration, logFile, currentTime);
+    // IRET (interrupt return)
+    fprintf(logFile, "%d, 1, IRET\n", *currentTime);
+    *currentTime += 1;
 }
 
 // argc (argument count) represents the number of command line arguments passed to the main function
 // argv (argument vector) is an array of strings (array of char pointers) containing the actual command line arguments
 int main (int argc, char *argv[]){
-   srand(time(NULL));  // Essentially sets the starting point for the random num gen. to be the current time
+   srand(time(NULL));  // Set random seed based on the current time, essentially sets the starting point for the random num gen to be current time
 
-    // Check if the correct number of arguments is passed (we expect the trace file as an argument, along with the name of the program)
+    // Check if the correct number of arguments is passed (trace file as an argument, along with this file name)
     if (argc < 2) {
         printf("Error: No trace file specified.\n");
         return 1;
@@ -150,7 +149,7 @@ int main (int argc, char *argv[]){
 
     TraceEntry* traceEntries;
     // Load the trace file input from the path specified in the command line argument
-    int traceCount = loadTrace(argv[1], &traceEntries); // argv[1] stores the path to the trace file as a string (pointer to first char in string)
+    int traceCount = loadTrace(argv[1], &traceEntries);
     if (traceCount == -1) {
         return 1;  // Error loading trace
     }
@@ -163,7 +162,7 @@ int main (int argc, char *argv[]){
 
     int currentTime = 0;  // Simulated time in milliseconds
 
-    // For each trace entry, process them depending on their activity
+    // Process each trace entry depending on its activity
     for (int i = 0; i < traceCount; i++) {
         if (strcmp(traceEntries[i].activity, "CPU") == 0) {
             useCPU(traceEntries[i].duration, logFile, &currentTime);
