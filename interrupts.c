@@ -4,7 +4,7 @@
 #include <unistd.h>  // For usleep()
 #include <time.h>    // For random numbers
 
-// The vector table will be hardcoded as an array of structs
+// The vector table will be hardcoded
 VectorEntry vectorTable[VECTOR_TABLE_SIZE] = {
     {1, 0x01A3}, {2, 0x024D}, {3, 0x03F6}, {4, 0x05A9}, {5, 0x0467},
     {6, 0x022B}, {7, 0x03D1}, {8, 0x0659}, {9, 0x027A}, {10, 0x04F2},

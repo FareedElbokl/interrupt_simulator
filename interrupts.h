@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define VECTOR_TABLE_SIZE 25  // Size of the vector table based on the provided ISR addresses
+#define VECTOR_TABLE_SIZE 25  // Size of the vector table
 
 // Structure to hold activity data from trace.txt
 typedef struct {
@@ -24,4 +24,4 @@ void useCPU(int duration, FILE* logFile, int* currentTime); // Simulates CPU wor
 void handleSysCall(int position, int duration, FILE* logFile, int* currentTime); // Simulates a system call
 void handleEndIO(int position, int duration, FILE* logFile, int* currentTime); // Simulates handling of an I/O interrupt
 
-#endif // INTERRUPTS_H
+#endif
